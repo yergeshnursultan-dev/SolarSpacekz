@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8" />
+<title>Solar Space — Күн тәждік массасы платформасы ☀️</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  :root {
+    --accent: #ffbf00;
+    --accent-soft: rgba(255, 191, 0, 0.12);
+    --bg-deep: #020312;
+    --card-bg: rgba(10, 16, 40, 0.9);
+    --border-soft: rgba(148, 163, 184, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #e5e7eb;
+    background:
+      radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 55%),
+      radial-gradient(circle at bottom, rgba(34, 197, 94, 0.18), transparent 60%),
+      radial-gradient(circle at center, #020617, #020312 70%);
+    min-height: 100vh;
+  }
+
+  header {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px 20px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 10px; }
+
+  .brand-logo {
+    width: 32px; height: 32px; border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, #fde68a, #f97316 55%, #b91c1c 85%);
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.8);
+  }
+
+  .brand-name {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-size: 1rem;
+  }
+
+  nav {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  nav span { cursor: default; }
+
+  .badge-pro {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    border: 1px solid rgba(52, 211, 153, 0.7);
+    background: rgba(16, 185, 129, 0.12);
+    color: #6ee7b7;
+  }
+
+  .hero {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6px 20px 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+    gap: 24px;
+    align-items: center;
+  }
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+  }
+
+  .hero-left-title {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .hero-left-title span.accent {
+    background: linear-gradient(135deg, #facc15, #f97316);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .hero-sub {
+    margin-top: 8px;
+    font-size: 0.95rem;
+    opacity: 0.9;
+    max-width: 520px;
+  }
+
+  .hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+    align-items: center;
+  }
+
+  .btn-primary {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    color: #0f172a;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(248, 181, 0, 0.55);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  .hero-small-note {
+    font-size: 0.8rem;
+    opacity: 0.8;
+  }
+
+  .upload-card {
+    margin-top: 10px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  input[type="file"] { font-size: 0.8rem; }
+
+  .status-pill {
+    min-width: 150px;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-dot {
+    width: 9px; height: 9px; border-radius: 999px; background: #9ca3af;
+  }
+  .status-pill.ready .status-dot { background: #22c55e; }
+  .status-pill.loading .status-dot {
+    background: #eab308;
+    animation: pulse 1s infinite alternate;
+  }
+  .status-pill.error .status-dot { background: #ef4444; }
+  @keyframes pulse {
+    from { transform: scale(0.8); opacity: 0.6; }
+    to   { transform: scale(1.1); opacity: 1; }
+  }
+
+  .main-layout {
+    max-width: 1200px;
+    margin: 6px auto 40px;
+    padding: 0 20px 20px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.2fr);
+    gap: 20px;
+  }
+  @media (max-width: 1024px) {
+    .main-layout { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--border-soft);
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .card-sub {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-bottom: 8px;
+  }
+
+  /* Күн анимациясы */
+  #sun-system {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin: 8px auto 4px;
+  }
+
+  #sun, #corona, #flare, #orbit-particles {
+    position: absolute;
+    border-radius: 50%;
+    transition: 0.12s;
+  }
+
+  #sun {
+    width: 160px;
+    height: 160px;
+    top: 50px;
+    left: 50px;
+    background: radial-gradient(circle at 30% 30%, #fef9c3, #f97316 60%, #b91c1c 85%);
+    box-shadow: 0 0 40px rgba(248, 181, 0, 0.9);
+    animation: sun-pulse 2.8s infinite ease-in-out;
+    overflow: hidden;
+  }
+
+  #corona {
+    width: 160px;
+    height: 160px;
+    top: 50px;
+    left: 50px;
+    background: radial-gradient(circle, rgba(255, 200, 80, 0.45), transparent 70%);
+    animation: corona-pulse 3.4s infinite ease-in-out;
+  }
+
+  #flare {
+    width: 240px;
+    height: 240px;
+    top: 10px;
+    left: 10px;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(248, 113, 113, 0.0), transparent 75%);
+    mix-blend-mode: screen;
+  }
+
+  #orbit-particles {
+    width: 260px;
+    height: 260px;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    border: 1px dashed rgba(148, 163, 184, 0.25);
+    animation: orbit-rotate 14s linear infinite;
+    background:
+      radial-gradient(circle at 90% 20%, rgba(248, 250, 252, 0.4), transparent 60%),
+      radial-gradient(circle at 10% 80%, rgba(248, 250, 252, 0.25), transparent 55%);
+    opacity: 0.5;
+  }
+
+  @keyframes sun-pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+  @keyframes corona-pulse {
+    0%,100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.07); opacity: 1; }
+  }
+  @keyframes orbit-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .year-label {
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    color: #fde68a;
+  }
+  .region-label {
+    text-align: center;
+    font-size: 0.8rem;
+    margin-top: 2px;
+    color: #e5e7eb;
+  }
+
+  .controls-row {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-ghost {
+    border-radius: 999px;
+    padding: 6px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    background: rgba(15, 23, 42, 0.9);
+    color: #e5e7eb;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .btn-ghost:hover {
+    background: rgba(30, 64, 175, 0.8);
+  }
+
+  #results { font-size: 0.8rem; margin-top: 8px; }
+  #results p { margin: 3px 0; }
+
+  .pill-highlight {
+    display: inline-flex;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(8, 47, 73, 0.9);
+    border: 1px solid rgba(56, 189, 248, 0.7);
+    font-size: 0.75rem;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .chart-wrapper {
+    background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.15), transparent 55%);
+    border-radius: 16px;
+    padding: 10px 10px 6px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    opacity: 0.9;
+  }
+
+  canvas {
+    width: 100%;
+    height: 190px;
+    border-radius: 10px;
+    background: #020617;
+  }
+
+  /* -------- Күн макеті фоны + тор бағыттағы график -------- */
+  .sun-model {
+    margin-top: 12px;
+    border-radius: 18px;
+    padding: 14px 14px 12px;
+    background: radial-gradient(circle at top, rgba(248, 250, 252, 0.06), transparent 70%);
+    border: 1px dashed rgba(148, 163, 184, 0.5);
+    font-size: 0.8rem;
+  }
+
+  .sun-model-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+
+  .sun-map-wrapper {
+    position: relative;
+    margin: 8px auto 6px;
+    width: 220px;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at center, rgba(249,115,22,0.95) 0, rgba(15,23,42,1) 60%);
+    padding: 10px;
+    box-shadow: 0 0 22px rgba(249,115,22,0.5);
+  }
+
+  #sunRegionMap {
+    width: 100% !important;
+    height: 100% !important;
+    background: radial-gradient(circle at center, rgba(15,23,42,0.4), transparent 70%);
+  }
+
+  .sun-quadrant-label {
+    position: absolute;
+    font-size: 0.7rem;
+    opacity: 0.95;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+  }
+  .sun-q-top {
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .sun-q-bottom {
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .sun-q-left {
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .sun-q-right {
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .sun-map-axes-label {
+    text-align: center;
+    font-size: 0.75rem;
+    opacity: 0.85;
+    margin-top: 2px;
+  }
+
+  .sun-model-caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 999px;
+  }
+
+  /* -------- Калькулятор + ЖИ болжам блоктары -------- */
+  .calc-block {
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,0.6);
+    background: rgba(15,23,42,0.9);
+    font-size: 0.8rem;
+  }
+
+  .calc-block-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+  }
+
+  .calc-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .calc-row label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75rem;
+  }
+
+  .calc-row input {
+    background: #020617;
+    border-radius: 8px;
+    border: 1px solid rgba(148,163,184,0.7);
+    padding: 4px 6px;
+    color: #e5e7eb;
+    font-size: 0.8rem;
+    min-width: 80px;
+  }
+
+  .calc-result {
+    margin-top: 4px;
+    font-size: 0.8rem;
+  }
+
+  .ai-forecast {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(96,165,250,0.9);
+    background:
+      radial-gradient(circle at top left, rgba(59,130,246,0.3), transparent 60%),
+      radial-gradient(circle at bottom right, rgba(8,47,73,0.7), rgba(15,23,42,1));
+    font-size: 0.8rem;
+    box-shadow: 0 12px 26px rgba(15,23,42,0.8);
+  }
+
+  .ai-forecast-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .ai-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.7);
+    border: 1px solid rgba(148,163,184,0.7);
+  }
+
+  .ai-metrics-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 8px;
+  }
+
+  .ai-metric {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: rgba(15,23,42,0.7);
+    border: 1px solid rgba(107,114,128,0.7);
+  }
+
+  .ai-forecast-body {
+    font-size: 0.8rem;
+    opacity: 0.92;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-logo"></div>
+    <div>
+      <div class="brand-name">Solar Space</div>
+      <div style="font-size:0.75rem;opacity:0.7;">Coronal Mass Ejection Analytics</div>
+    </div>
+  </div>
+  <nav>
+    <span>Функциялар</span>
+    <span>Аналитика</span>
+    <span>Контакт</span>
+    <span class="badge-pro">Research Edition</span>
+  </nav>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="hero-left-title">
+      Күннің <span class="accent">тәждік массасын</span><br/>
+      визуалды талдау платформасы
+    </div>
+    <div class="hero-sub">
+      SME форматындағы TXT файлды және X_CME.txt файлды жүктеп, тәждік масса,  
+      кинетикалық энергия, жылдамдық, ауытқу, кешігу және Күн бетінің қай  
+      бөліктерінде жиі болатынын зертте.
+    </div>
+    <div class="hero-cta-row">
+      <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+        🔭 Деректі жүктеп бастау
+      </button>
+      <div class="hero-small-note">
+        1996–2025 аралығындағы Күн CME деректері үшін ыңғайлы.  
+        Бұл — ғылыми демонстрациялық құрал, нақты болжағыш емес.
+      </div>
+    </div>
+    <div class="upload-card">
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:0.8rem;">
+        <label>SME дерегі (негізгі TXT): <input type="file" id="fileInput" /></label>
+        <label>X_CME дерегі (кешігу, координат): <input type="file" id="xCmeInput" /></label>
+      </div>
+      <button class="btn-ghost" onclick="loadData()">Файлдарды өңдеу</button>
+      <div id="statusMessage" class="status-pill">
+        <span class="status-dot"></span>
+        <span id="statusText">Файлдар таңдалмады</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Күн анимациясы</div>
+    <div class="card-sub">
+      Масса, энергия және жылдамдық бойынша Күннің түсі, коронасы  
+      мен жарқырауы өзгереді. Бұл — визуализация, үстірт модель.
+    </div>
+    <div id="sun-system">
+      <div id="orbit-particles"></div>
+      <div id="flare"></div>
+      <div id="corona"></div>
+      <div id="sun"></div>
+    </div>
+    <div class="year-label">
+      Уақыт (жыл): <span id="yearShow">–</span>
+    </div>
+    <div class="region-label">
+      Күннің ағымдағы бөлігі: <span id="regionText">—</span>
+    </div>
+    <div class="controls-row">
+      <button class="btn-ghost" onclick="play()">▶ Ойнату</button>
+      <button class="btn-ghost" onclick="pause()">⏸ Тоқтату</button>
+      <button class="btn-ghost" onclick="resetAnim()">🔄 Қайта бастау</button>
+    </div>
+    <div id="results"></div>
+  </div>
+</section>
+
+<main class="main-layout">
+  <div class="card">
+    <div class="card-title">Графиктер</div>
+    <div class="card-sub">
+      Тәждік масса, кинетикалық энергия, сызықтық жылдамдық, ауытқу,  
+      жарықталу интенсивтілігі мен кешігу, сондай-ақ Күн бетінің қай  
+      бөліктері белсендірек екенін интерактивті түрде қарау.
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-wrapper">
+        <div class="chart-header">
+          <span>Тәждік масса</span><span>M(t)</span>
+        </div>
+        <canvas id="chartMass"></canvas>
+      </div>
+
+      <div class="chart-wrapper">
+        <div class="chart-header">
+          <span>Кинетикалық энергия</span><span>E<sub>kin</sub>(t)</span>
+        </div>
+        <canvas id="chartKE"></canvas>
+      </div>
+
+      <div class="chart-wrapper">
+        <div class="chart-header">
+          <span>Сызықтық жылдамдық</span><span>V(t)</span>
+        </div>
+        <canvas id="chartSpeed"></canvas>
+      </div>
+
+      <div class="chart-wrapper">
+        <div class="chart-header">
+          <span>Тәждік массаның ауытқуы</span><span>M − ⟨M⟩</span>
+        </div>
+        <canvas id="chartMassDev"></canvas>
+      </div>
+
+      <div class="chart-wrapper">
+        <div class="chart-header">
+          <span>Кешігу графигі</span><span>Δt vs I</span>
+        </div>
+        <canvas id="chartCorr"></canvas>
+      </div>
+
+      <div class="chart-wrapper">
+        <div class="chart-header">
+          <span>Күн бетінің бөліктері</span>
+          <span>Солт/Оңт/Шығыс/Батыс/Орталық</span>
+        </div>
+        <canvas id="chartForecast"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Күн жарқ етуі</div>
+    <div class="card-sub">
+      X_CME.txt бойынша кешігу уақыты мен оқиғалардың Күн бетінде  
+      қалай бөлінетінін бағалайды.
+    </div>
+
+    <div id="spikeSummary" style="font-size:0.8rem;margin-bottom:10px;">
+      Деректер жүктелген соң бұл жерде кешігу мен Күн бөліктері бойынша қорытынды шығады.
+    </div>
+
+    <!-- Күн макеті фоны және тор бағыттағы график -->
+    <div class="sun-model">
+      <div class="sun-model-title">Күн макеті (фон) және оқиғалар картасы</div>
+      <div class="sun-map-wrapper">
+        <canvas id="sunRegionMap"></canvas>
+        <div class="sun-quadrant-label sun-q-top">Солтүстік (+Y)</div>
+        <div class="sun-quadrant-label sun-q-bottom">Оңтүстік (−Y)</div>
+        <div class="sun-quadrant-label sun-q-left">Батыс (-X)</div>
+        <div class="sun-quadrant-label sun-q-right">Шығыс (+X)</div>
+      </div>
+      <div class="sun-map-axes-label">
+        Картезиан тор: X (шығыс–батыс), Y (солтүстік–оңтүстік), нүктелер – оқиғалар
+      </div>
+      <div class="sun-model-caption">
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#f97316;"></span>
+          <span>Күн дискі (фон)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#38bdf8;"></span>
+          <span>CME нүктелері</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot" style="background:#22c55e;"></span>
+          <span>Орта аймақ</span>
+        </div>
+      </div>
+      <div style="margin-top:6px;opacity:0.8;">
+        Нүктелер coorXm·coorX және coorYm·coorY координаттары бойынша
+        төрт бағытқа (солт/оңт/шығ/бат) бөлініп көрсетіледі.
+      </div>
+    </div>
+
+    <!-- Тәждік масса калькуляторы -->
+    <div class="calc-block">
+      <div class="calc-block-title">Тәждік массаны есептейтін калькулятор</div>
+      <div style="margin-bottom:4px;opacity:0.8;">
+        Кинетикалық энергия мен жылдамдық берілсе, <i>E = 0.5 · m · v²</i>
+        формуласынан масса есептеледі: <i>m = 2E / v²</i>.
+      </div>
+      <div class="calc-row">
+        <label>
+          Кинетикалық энергия E (эрг):
+          <input type="number" id="calcE" placeholder="мыс: 1e31">
+        </label>
+        <label>
+          Жылдамдық v (км/с):
+          <input type="number" id="calcV" placeholder="мыс: 800">
+        </label>
+      </div>
+      <button class="btn-ghost" onclick="calcMass()">Массаны есептеу</button>
+      <div id="calcResult" class="calc-result">
+        Нәтиже мұнда шығады.
+      </div>
+    </div>
+
+    <!-- ЖИ сияқты болашақ болжам/қорытынды -->
+    <div class="ai-forecast" id="aiForecast">
+      <div class="ai-forecast-title">
+        🤖 ЖИ–болжам
+        <span class="ai-chip">CME Pattern</span>
+      </div>
+      <div class="ai-metrics-row" id="aiMetricsRow">
+        <!-- динамикалық метрикалар мұнда келеді -->
+      </div>
+      <div id="aiForecastText" class="ai-forecast-body">
+        Деректер жүктелген соң, Күннің белсенді аймақтары, орташа кешігу уақыты
+        және тәждік масса бойынша қысқаша қорытынды мұнда автоматты түрде шығады.
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // =====================================================
+  // SME деректері (негізгі TXT): Mass, KE, Speed, Dev
+  // =====================================================
+  let Date_god = [], Mass = [], KE = [], Speed = [], MassDev = [];
+  let maxM = 0, maxKE = 0, maxV = 0;
+  let meanM = 0, meanKE = 0, stdM = 0, stdKE = 0;
+
+  // Күн анимациясы
+  let idx = 0, playing = false, timer = null;
+
+  // Chart объектілері
+  let massChart, keChart, speedChart, devChart, corrChart, forecastChart, regionMapChart;
+
+  // X_CME деректері
+  let DelayMinutes = [];   // delta = Time1 - Time2 (минутпен)
+  let Intensity = [];      // I = IX * IXX
+  let regionCounts = null; // {north, south, east, west, center}
+  let regionX = [];        // X координаттары
+  let regionY = [];        // Y координаттары
+
+  const statusMessage = document.getElementById("statusMessage");
+  const statusText = document.getElementById("statusText");
+
+  function setStatus(type, text) {
+    statusMessage.classList.remove("ready", "loading", "error");
+    if (type) statusMessage.classList.add(type);
+    statusText.textContent = text;
+  }
+
+  // =====================================================
+  // SME ФАЙЛЫН ОҚУ
+  // =====================================================
+  function loadData() {
+    const smeFile  = document.getElementById("fileInput").files[0];
+    const xcmeFile = document.getElementById("xCmeInput").files[0];
+
+    if (!smeFile) {
+      setStatus("error", "SME файлы таңдалмады");
+      alert("Алдымен SME TXT файлын таңда.");
+      return;
+    }
+
+    setStatus("loading", "Файлдар оқылуда...");
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = e.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
+
+      Date_god = [];
+      Mass = [];
+      KE = [];
+      Speed = [];
+      MassDev = [];
+
+      for (const L of lines) {
+        const d = L.trim().split(/\s+/);
+        if (d.length < 15) continue;
+
+        const god = +d[0];
+        const mes = +d[1];
+        const den = +d[2];
+        const has = +d[3];
+        const min = +d[4];
+        const sec = +d[5];
+
+        const T = has + min / 60 + sec / 3600;
+        const dateYear = god + mes / 12 + den / 365 + T / (24 * 365);
+
+        const speed = +d[8];   // сызықтық жылдамдық
+        const mass  = +d[13];  // массасы
+        const ke    = +d[14];  // кинетикалық энергия
+
+        Date_god.push(dateYear);
+        Speed.push(speed);
+        Mass.push(mass);
+        KE.push(ke);
+      }
+
+      if (Mass.length === 0) {
+        setStatus("error", "SME дерегі табылмады");
+        alert("SME файл форматы күткенге сай емес (бағандар жетіспейді).");
+        return;
+      }
+
+      maxM = Math.max(...Mass);
+      maxKE = Math.max(...KE);
+      maxV = Math.max(...Speed);
+
+      meanM = Mass.reduce((a, b) => a + b, 0) / Mass.length;
+      meanKE = KE.reduce((a, b) => a + b, 0) / Mass.length;
+
+      stdM = Math.sqrt(Mass.reduce((s, v) => s + (v - meanM) ** 2, 0) / Mass.length);
+      stdKE = Math.sqrt(KE.reduce((s, v) => s + (v - meanKE) ** 2, 0) / Mass.length);
+
+      MassDev = Mass.map(m => m - meanM);
+
+      // SME графиктерін саламыз
+      plotCoreCharts();
+      updateAnimationSummary();
+
+      // Егер X_CME файлы бар болса, оны да оқимыз
+      if (xcmeFile) {
+        readXCMEFile(xcmeFile);
+      } else {
+        DelayMinutes = [];
+        Intensity = [];
+        regionCounts = null;
+        regionX = [];
+        regionY = [];
+        plotDelayAndRegionCharts();
+        updateRegionSummary();
+        updateForecast();
+        setStatus("ready", "SME деректері дайын ✅ (X_CME таңдалмаған)");
+      }
+    };
+
+    reader.onerror = () => {
+      setStatus("error", "SME оқу қатесі");
+      alert("SME файлын оқу кезінде қате кетті.");
+    };
+
+    reader.readAsText(smeFile);
+  }
+
+  // =====================================================
+  // X_CME ФАЙЛЫН ОҚУ
+  // =====================================================
+  function readXCMEFile(file) {
+    const reader2 = new FileReader();
+    reader2.onload = (e) => {
+      const text = e.target.result;
+      parseXCMEText(text);
+      plotDelayAndRegionCharts();
+      updateRegionSummary();
+      updateAnimationSummary();
+      updateForecast();
+      setStatus("ready", "SME + X_CME деректері дайын ✅");
+    };
+    reader2.onerror = () => {
+      setStatus("error", "X_CME оқу қатесі");
+      alert("X_CME файлын оқу кезінде қате кетті.");
+    };
+    reader2.readAsText(file);
+  }
+
+  function parseXCMEText(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+
+    DelayMinutes = [];
+    Intensity = [];
+    regionCounts = { north: 0, south: 0, east: 0, west: 0, center: 0 };
+    regionX = [];
+    regionY = [];
+
+    for (const L of lines) {
+      const dRaw = L.trim().split(/\s+/);
+      if (dRaw.length < 17) continue;
+
+      // Бірінші элемент – "1." сияқты индекс, сондықтан жыл 2-элементтен:
+      let d = dRaw;
+      if (dRaw[0].includes(".")) {
+        d = dRaw.slice(1);
+        if (d.length < 17) continue;
+      }
+
+      const has  = parseFloat(d[3]) || 0;
+      const min  = parseFloat(d[4]) || 0;
+      const sec  = parseFloat(d[5]) || 0;
+      const has2 = parseFloat(d[15]) || 0;
+      const min2 = parseFloat(d[16]) || 0;
+
+      const coorYm = parseFloat(d[9])  || 0;
+      const coorY  = parseFloat(d[10]) || 0;
+      const coorXm = parseFloat(d[11]) || 0;
+      const coorX  = parseFloat(d[12]) || 0;
+
+      const IXX = parseFloat(d[13]) || 0;
+      const IX  = parseFloat(d[14]) || 0;
+      const I   = IX * IXX;
+
+      const Time1 = has * 60 + min + sec / 60; // CME уақыты, мин
+      const Time2 = has2 * 60 + min2;          // flare басталу уақыты, мин
+      const delta = Time1 - Time2;             // кешігу (минут)
+
+      DelayMinutes.push(delta);
+      Intensity.push(I);
+
+      const X = coorXm * coorX;
+      const Y = coorYm * coorY;
+
+      regionX.push(X);
+      regionY.push(Y);
+
+      const absX = Math.abs(X);
+      const absY = Math.abs(Y);
+      const centerThreshold = 10; // градус ішінде болса "орталық"
+
+      if (absX <= centerThreshold && absY <= centerThreshold) {
+        regionCounts.center++;
+      } else if (absY >= absX) {
+        if (Y > 0) regionCounts.north++;
+        else if (Y < 0) regionCounts.south++;
+      } else {
+        if (X > 0) regionCounts.west++;
+        else if (X < 0) regionCounts.east++;
+      }
+    }
+  }
+
+  // =====================================================
+  // SME бойынша қысқаша қорытынды + кешігу статистикасы
+  // =====================================================
+  function updateAnimationSummary() {
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "";
+
+    if (Mass.length > 0) {
+      const iM = Mass.indexOf(maxM);
+      const iE = KE.indexOf(maxKE);
+      const iV = Speed.indexOf(maxV);
+
+      const p1 = document.createElement("p");
+      p1.innerHTML = `<span class="pill-highlight">Max Mass</span> = ${maxM.toExponential(3)} г (T ≈ ${Date_god[iM].toFixed(2)} жыл)`;
+      const p2 = document.createElement("p");
+      p2.innerHTML = `<span class="pill-highlight">Max E<sub>kin</sub></span> = ${maxKE.toExponential(3)} эрг (T ≈ ${Date_god[iE].toFixed(2)} жыл)`;
+      const p3 = document.createElement("p");
+      p3.innerHTML = `<span class="pill-highlight">Max V</span> = ${maxV.toFixed(1)} км/с (T ≈ ${Date_god[iV].toFixed(2)} жыл)`;
+      const p4 = document.createElement("p");
+      p4.innerHTML = `Орташа тәждік масса: ${meanM.toExponential(3)} г`;
+
+      resultsDiv.appendChild(p1);
+      resultsDiv.appendChild(p2);
+      resultsDiv.appendChild(p3);
+      resultsDiv.appendChild(p4);
+    }
+
+    if (DelayMinutes.length > 0) {
+      const n = DelayMinutes.length;
+      const sum = DelayMinutes.reduce((a,b)=>a+b,0);
+      const avg = sum / n;
+      const minD = Math.min(...DelayMinutes);
+      const maxD = Math.max(...DelayMinutes);
+
+      const pLag = document.createElement("p");
+      pLag.innerHTML =
+        `Кешігу статистикасы (X_CME): ⟨Δt⟩ ≈ <b>${avg.toFixed(1)} мин</b>, ` +
+        `мин: ${minD.toFixed(1)} мин, макс: ${maxD.toFixed(1)} мин.`;
+      resultsDiv.appendChild(pLag);
+    } else {
+      const pLag = document.createElement("p");
+      pLag.innerHTML = `Кешігуді көру үшін X_CME.txt файлын жүкте.`;
+      resultsDiv.appendChild(pLag);
+    }
+  }
+
+  // =====================================================
+  // Күн анимациясы
+  // =====================================================
+  function getSunRegion(m, ke, v) {
+    if (m > meanM + 2 * stdM) return "Корона (CME белсенді)";
+    if (ke > meanKE + 2 * stdKE) return "Жарқ ету / flares аймағы";
+    if (v > maxV * 0.7) return "Радиативті аймақ";
+    if (m > meanM) return "Конвективті аймақ";
+    return "Фотосфера";
+  }
+
+  function animateSun() {
+    if (Mass.length === 0) return;
+
+    const m = Mass[idx];
+    const ke = KE[idx];
+    const v = Speed[idx];
+
+    document.getElementById("yearShow").textContent = Date_god[idx].toFixed(2);
+
+    const sunEl = document.getElementById("sun");
+    const coronaEl = document.getElementById("corona");
+    const flareEl = document.getElementById("flare");
+
+    const scale = (m / maxM) * 0.8 + 0.4;
+    sunEl.style.transform = `scale(${scale})`;
+    coronaEl.style.transform = `scale(${1 + scale * 0.4})`;
+
+    const flareAlpha = Math.min(1, (ke / maxKE) * 1.1);
+    flareEl.style.background =
+      `radial-gradient(circle, rgba(248,113,113,${flareAlpha}), transparent 70%)`;
+
+    const hue = (v / maxV) * 120;
+    sunEl.style.filter = `hue-rotate(${hue}deg)`;
+
+    const region = getSunRegion(m, ke, v);
+    document.getElementById("regionText").textContent = region;
+
+    idx = (idx + 1) % Mass.length;
+  }
+
+  function play() {
+    if (!playing) {
+      timer = setInterval(animateSun, 100);
+      playing = true;
+    }
+  }
+
+  function pause() {
+    clearInterval(timer);
+    playing = false;
+  }
+
+  function resetAnim() {
+    idx = 0;
+    pause();
+    document.getElementById("yearShow").textContent = "–";
+    document.getElementById("regionText").textContent = "—";
+    document.getElementById("sun").style.transform = "scale(1)";
+    document.getElementById("corona").style.transform = "scale(1)";
+    document.getElementById("flare").style.background =
+      "radial-gradient(circle, rgba(248,113,113,0.0), transparent 70%)";
+  }
+
+  // =====================================================
+  // CHART.JS – 1–4 график (Mass, KE, Speed, Dev)
+  // =====================================================
+  function destroyIfExists(ch) {
+    if (ch && typeof ch.destroy === "function") ch.destroy();
+  }
+
+  function plotCoreCharts() {
+    destroyIfExists(massChart);
+    destroyIfExists(keChart);
+    destroyIfExists(speedChart);
+    destroyIfExists(devChart);
+
+    // 1) Mass
+    massChart = new Chart(document.getElementById("chartMass"), {
+      type: "line",
+      data: {
+        labels: Date_god,
+        datasets: [{
+          label: "M(t)",
+          data: Mass,
+          borderColor: "rgba(34,197,235,1)",
+          borderWidth: 1.4,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: "T, жыл" } },
+          y: { title: { display: true, text: "M, г" } }
+        }
+      }
+    });
+
+    // 2) KE
+    keChart = new Chart(document.getElementById("chartKE"), {
+      type: "line",
+      data: {
+        labels: Date_god,
+        datasets: [{
+          label: "E_kin(t)",
+          data: KE,
+          borderColor: "rgba(249,115,22,1)",
+          borderWidth: 1.4,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: "T, жыл" } },
+          y: { title: { display: true, text: "E_kin, эрг" } }
+        }
+      }
+    });
+
+    // 3) Speed
+    speedChart = new Chart(document.getElementById("chartSpeed"), {
+      type: "line",
+      data: {
+        labels: Date_god,
+        datasets: [{
+          label: "V(t)",
+          data: Speed,
+          borderColor: "rgba(250,250,110,1)",
+          borderWidth: 1.4,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: "T, жыл" } },
+          y: { title: { display: true, text: "V, км/с" } }
+        }
+      }
+    });
+
+    // 4) Mass deviation
+    devChart = new Chart(document.getElementById("chartMassDev"), {
+      type: "line",
+      data: {
+        labels: Date_god,
+        datasets: [{
+          label: "M - ⟨M⟩",
+          data: MassDev,
+          borderColor: "rgba(129,140,248,1)",
+          borderWidth: 1.2,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: "T, жыл" } },
+          y: { title: { display: true, text: "ΔM, г" } }
+        }
+      }
+    });
+  }
+
+  // =====================================================
+  // 5–6 график: кешігу (I vs Δt) және Күн бөліктері
+  // + күн макеті фонында scatter карта
+  // =====================================================
+  function plotDelayAndRegionCharts() {
+    destroyIfExists(corrChart);
+    destroyIfExists(forecastChart);
+    destroyIfExists(regionMapChart);
+
+    // 5) I vs delta scatter (кешігу графигі)
+    if (DelayMinutes.length > 0 && Intensity.length > 0) {
+      const points = Intensity.map((I, i) => ({
+        x: I,
+        y: DelayMinutes[i]
+      }));
+
+      corrChart = new Chart(document.getElementById("chartCorr"), {
+        type: "scatter",
+        data: {
+          datasets: [{
+            label: "Δt vs I",
+            data: points,
+            backgroundColor: "rgba(248,113,113,0.8)",
+            pointRadius: 2
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              title: { display: true, text: "I (Вт/м2, шартты бірлік)" },
+              type: "linear"
+            },
+            y: {
+              title: { display: true, text: "Кешігу Δt, минут" }
+            }
+          }
+        }
+      });
+    }
+
+    // 6) Күн бетінің бөліктері – бар-диаграмма
+    if (regionCounts) {
+      const labels = [
+        "Солтүстік",
+        "Оңтүстік",
+        "Шығыс",
+        "Батыс",
+        "Орталық"
+      ];
+      const data = [
+        regionCounts.north,
+        regionCounts.south,
+        regionCounts.east,
+        regionCounts.west,
+        regionCounts.center
+      ];
+
+      forecastChart = new Chart(document.getElementById("chartForecast"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Оқиға саны",
+            data,
+            backgroundColor: "rgba(56,189,248,0.8)"
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { title: { display: true, text: "Күн бетінің бөлігі" } },
+            y: { title: { display: true, text: "Оқиға саны" }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // 7) Күн макеті фонында X-Y scatter карта (тор бағытқа)
+    if (regionX.length > 0 && regionY.length > 0) {
+      const pts = regionX.map((x, i) => ({
+        x,
+        y: regionY[i]
+      }));
+
+      const maxAbs = Math.max(
+        ...regionX.map(v => Math.abs(v)),
+        ...regionY.map(v => Math.abs(v)),
+        20
+      );
+
+      regionMapChart = new Chart(document.getElementById("sunRegionMap"), {
+        type: "scatter",
+        data: {
+          datasets: [{
+            label: "CME points",
+            data: pts,
+            backgroundColor: "rgba(56,189,248,0.95)",
+            pointRadius: 2
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              min: -maxAbs,
+              max:  maxAbs,
+              grid: { color: "rgba(248,250,252,0.25)" },
+              ticks: { display: false }
+            },
+            y: {
+              min: -maxAbs,
+              max:  maxAbs,
+              grid: { color: "rgba(248,250,252,0.25)" },
+              ticks: { display: false }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // =====================================================
+  // Күн бөліктері бойынша қысқаша мәтіндік қорытынды
+  // =====================================================
+  function updateRegionSummary() {
+    const div = document.getElementById("spikeSummary");
+    if (!div) return;
+
+    if (!regionCounts) {
+      div.textContent =
+        "Деректер жүктелген соң бұл жерде кешігу мен Күн бөліктері бойынша қорытынды шығады.";
+      return;
+    }
+
+    const entries = [
+      { key: "north",    label: "Солтүстік жартышар" },
+      { key: "south",    label: "Оңтүстік жартышар" },
+      { key: "east",     label: "Шығыс бөлігі" },
+      { key: "west",     label: "Батыс бөлігі" },
+      { key: "center",   label: "Орта/дискі центрі" }
+    ];
+
+    let maxRegion = entries[0].label;
+    let maxVal = regionCounts[entries[0].key];
+    let total = 0;
+
+    for (const e of entries) {
+      const v = regionCounts[e.key];
+      total += v;
+      if (v > maxVal) {
+        maxVal = v;
+        maxRegion = e.label;
+      }
+    }
+
+    div.innerHTML = `
+      <p><b>X_CME оқиғаларының Күн беті бойынша бөлінуі:</b></p>
+      <p>Жалпы оқиғалар саны: <b>${total}</b></p>
+      <ul style="margin:4px 0 4px 16px;padding:0;font-size:0.8rem;">
+        <li>Солтүстік жартышар: ${regionCounts.north}</li>
+        <li>Оңтүстік жартышар: ${regionCounts.south}</li>
+        <li>Шығыс бөлігі: ${regionCounts.east}</li>
+        <li>Батыс бөлігі: ${regionCounts.west}</li>
+        <li>Орта/дискі центрі: ${regionCounts.center}</li>
+      </ul>
+      <p style="margin-top:4px;">Ең белсенді аймақ: <b>${maxRegion}</b>.</p>
+      <p style="margin-top:4px;opacity:0.8;font-size:0.75rem;">
+        X және Y координаттары coorXm·coorX, coorYm·coorY ретінде алынған.  
+        Бұл – теориялық схеманы көрсету үшін жасалған қарапайым бөлу.
+      </p>
+    `;
+  }
+
+  // =====================================================
+  // Калькулятор: тәждік массаны есептеу
+  // =====================================================
+  function calcMass() {
+    const E = parseFloat(document.getElementById("calcE").value);
+    const v_km = parseFloat(document.getElementById("calcV").value);
+    const out = document.getElementById("calcResult");
+
+    if (isNaN(E) || isNaN(v_km) || v_km === 0) {
+      out.textContent = "Алдымен E және v мәндерін дұрыс енгіз.";
+      return;
+    }
+
+    // v км/с → см/с (1 км = 1e5 см)
+    const v_cms = v_km * 1e5;
+    // E = 0.5 * m * v^2 → m = 2E / v^2
+    const m = 2 * E / (v_cms * v_cms); // грамммен
+    const m15 = m / 1e15; // 10^15 г шкаласында
+
+    out.innerHTML =
+      `Есептелген тәждік масса: <b>${m.toExponential(3)} г</b> ` +
+      `(≈ ${m15.toFixed(2)} · 10<sup>15</sup> г).`;
+
+    updateForecast();
+  }
+
+  // =====================================================
+  // ЖИ–болжам (демо): SME + X_CME негізінде қысқаша қорытынды
+  // =====================================================
+  function updateForecast() {
+    const el = document.getElementById("aiForecastText");
+    const metricsRow = document.getElementById("aiMetricsRow");
+    if (!el || !metricsRow) return;
+
+    metricsRow.innerHTML = "";
+
+    if (Mass.length === 0) {
+      el.textContent =
+        "Алдымен SME және қажет болса X_CME деректерін жүкте. Сонда ЖИ–тәрізді қорытынды автоматты түрде құралады.";
+      return;
+    }
+
+    // Орташа кешігу
+    let avgDelay = null;
+    if (DelayMinutes.length > 0) {
+      const sum = DelayMinutes.reduce((a,b)=>a+b,0);
+      avgDelay = sum / DelayMinutes.length;
+    }
+
+    // Ең белсенді аймақ
+    let topRegionText = "белгісіз";
+    if (regionCounts) {
+      const entries = [
+        { key: "north",    label: "солтүстік жартышар" },
+        { key: "south",    label: "оңтүстік жартышар" },
+        { key: "east",     label: "шығыс бөлігі" },
+        { key: "west",     label: "батыс бөлігі" },
+        { key: "center",   label: "орталық аймақ" }
+      ];
+      let maxRegion = entries[0].label;
+      let maxVal = regionCounts[entries[0].key];
+      for (const e of entries) {
+        const v = regionCounts[e.key];
+        if (v > maxVal) {
+          maxVal = v;
+          maxRegion = e.label;
+        }
+      }
+      topRegionText = maxRegion;
+    }
+
+    const massStr = meanM ? meanM.toExponential(3) : "—";
+    const keStr   = meanKE ? meanKE.toExponential(3) : "—";
+
+    // Көрнекі метрикалар (үстіндегі чиптер)
+    const massMetric = document.createElement("div");
+    massMetric.className = "ai-metric";
+    massMetric.innerHTML = `⭑ ⟨M⟩: <b>${massStr} г</b>`;
+
+    const keMetric = document.createElement("div");
+    keMetric.className = "ai-metric";
+    keMetric.innerHTML = `⚡ ⟨E<sub>kin</sub>⟩: <b>${keStr} эрг</b>`;
+
+    metricsRow.appendChild(massMetric);
+    metricsRow.appendChild(keMetric);
+
+    if (avgDelay !== null) {
+      const dMetric = document.createElement("div");
+      dMetric.className = "ai-metric";
+      dMetric.innerHTML = `⏱ ⟨Δt⟩: <b>${avgDelay.toFixed(1)} мин</b>`;
+      metricsRow.appendChild(dMetric);
+    }
+
+    if (regionCounts) {
+      const rMetric = document.createElement("div");
+      rMetric.className = "ai-metric";
+      rMetric.innerHTML = `☀ Белсенді аймақ: <b>${topRegionText}</b>`;
+      metricsRow.appendChild(rMetric);
+    }
+
+    let txt = "";
+    txt += `Соңғы жүктелген деректер бойынша Күн тәждік массасының орташа мәні шамамен <b>${massStr} г</b>, ` +
+           `ал кинетикалық энергияның орташа деңгейі <b>${keStr} эрг</b> шамасында.\n\n`;
+
+    if (avgDelay !== null) {
+      txt += `Күн жарқ етуі мен тәждік массаның ұшуы арасындағы орташа кешігу уақыты ` +
+             `шамамен <b>${avgDelay.toFixed(1)} минут</b>. Бұл Күн белсенділігінің даму сценарийі ` +
+             `бірнеше минут ішінде жүріп, тәждік құрылымдардың қайта түзілуімен аяқталатынын білдіреді.\n\n`;
+    } else {
+      txt += `Кешігу уақыты (Δt) бойынша толық қорытынды жасау үшін X_CME.txt файлын қосымша жүктеу қажет.\n\n`;
+    }
+
+    if (regionCounts) {
+      txt += `Оқиғалардың ең көп шоғырланған аймағы – <b>${topRegionText}</b>. ` +
+             `Осы секторда белсенділік жиі байқалатындықтан, болашақта да CME оқиғаларының ` +
+             `көпшілігі дәл осы бағытта тіркелуі ықтимал (ЖИ–негізделген сапалық болжам).\n\n`;
+    }
+
+    txt += `Берілген қорытынды — деректерге негізделген оқу–демонстрациялық ЖИ моделі. ` +
+           `Нақты ғарыштық ауа райын болжау үшін толық физикалық модельдер, спектрлік деректер ` +
+           `мен қосымша бақылаулар қажет.`;
+
+    el.innerHTML = txt.replace(/\n/g, "<br>");
+  }
+</script>
+
+</body>
+</html>
